@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Archivos - ASCLEPIO</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transition: background-color 0.5s ease-in-out;
+        }
+        .container {
+            background: #fff;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            transition: transform 0.3s ease-in-out;
+        }
+        .container:hover {
+            transform: scale(1.03);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+            letter-spacing: 8px;
+            font-weight: bold;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+        input[type="text"] {
+            padding: 15px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            width: calc(100% - 32px);
+            margin-bottom: 20px;
+            font-size: 16px;
+            background-color: #f7f7f7;
+            transition: border-color 0.3s ease-in-out;
+        }
+        input[type="text"]:focus {
+            border-color: #000;
+            outline: none;
+        }
+        button {
+            padding: 15px 25px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s ease-in-out;
+        }
+        button:hover {
+            background-color: #000;
+        }
+        #result {
+            margin-top: 30px;
+        }
+        .file-link {
+            margin: 15px 0;
+            display: block;
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease-in-out;
+        }
+        .file-link:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getStorage, ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDq9Lw5Nfj73QiKIiyjmsjs0_nfHCyNJ9w",
+            authDomain: "asclepiodi.firebaseapp.com",
+            projectId: "asclepiodi",
+            storageBucket: "asclepiodi.appspot.com",
+            messagingSenderId: "44880416827",
+            appId: "1:44880416827:web:d9eb951708b9404cdfcc1e",
+            measurementId: "G-9FG060MDPQ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const storage = getStorage(app);
+
+        window.searchFiles = function searchFiles() {
+            const folderName = document.getElementById('folderName').value;
+
+            if (!folderName.match(/^[A-Z]+$/)) {
+                alert('El nombre de la carpeta solo debe contener letras mayúsculas sin signos especiales.');
+                return;
+            }
+
+            const listRef = ref(storage, folderName);
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '';
+
+            listAll(listRef)
+                .then((res) => {
+                    if (res.items.length === 0) {
+                        resultDiv.innerHTML = '<p>No se encontraron archivos en esta carpeta.</p>';
+                    } else {
+                        res.items.forEach((itemRef) => {
+                            getDownloadURL(itemRef).then((url) => {
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.textContent = itemRef.name;
+                                link.className = 'file-link';
+                                resultDiv.appendChild(link);
+                            });
+                        });
+                    }
+                }).catch((error) => {
+                    console.error('Error al buscar archivos:', error);
+                    alert('Error al buscar archivos. Por favor, intente de nuevo.');
+                });
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>ASCLEPIO</h1>
+        <p>Ingrese el nombre de la carpeta para buscar los archivos</p>
+        <input type="text" id="folderName" placeholder="Nombre de la Carpeta">
+        <button onclick="searchFiles()">Buscar</button>
+        <div id="result"></div>
+    </div>
+</body>
+</html>
